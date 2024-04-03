@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.PasswordField?>
+<?import javafx.scene.control.Button?>
+
+<AnchorPane xmlns="http://javafx.com/javafx"
+            xmlns:fx="http://javafx.com/fxml"
+            fx:controller="org.auto.minwonauto.MinwonMainController"
+            prefHeight="400.0" prefWidth="600.0">
+
+    <HBox id="gonginAuth" alignment="CENTER" spacing="8.0">
+        <padding>
+            <Insets bottom="10.0" left="10.0" right="10.0" top="10.0"/>
+        </padding>
+
+        <Label text="공인인증서 비밀번호 : "/>
+        <PasswordField fx:id="gonginAuthField"/>
+        <Button fx:id="startButton"/>
+    </HBox>
+</AnchorPane>
