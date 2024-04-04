@@ -8,13 +8,13 @@ import javafx.stage.Stage;
 import java.io.IOException;
 import java.net.URL;
 
-public class HelloApplication extends Application {
+public class MinwonApplication extends Application {
     @Override
     public void start(Stage stage) throws IOException {
-        URL resourceUrl = HelloApplication.class.getClassLoader().getResource("org/auto/minwonauto/hello-view.fxml");
+        URL resourceUrl = MinwonApplication.class.getClassLoader().getResource("org/auto/minwonauto/minwon-main.fxml");
         FXMLLoader fxmlLoader = new FXMLLoader(resourceUrl);
 
-        Scene scene = new Scene(fxmlLoader.load(), 380, 240);
+        Scene scene = new Scene(fxmlLoader.load(), 370,37);
         stage.setTitle("민원 자동처리기");
         stage.setScene(scene);
         stage.show();
