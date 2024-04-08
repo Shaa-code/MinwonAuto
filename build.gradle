@@ -1,7 +1,7 @@
 plugins {
   id 'java'
   id 'application'
-  id 'org.javamodularity.moduleplugin' version '1.8.12'
+//  id 'org.javamodularity.moduleplugin' version '1.8.12'
   id 'org.openjfx.javafxplugin' version '0.0.13'
   id 'org.beryx.jlink' version '2.25.0'
 }
@@ -26,7 +26,7 @@ tasks.withType(JavaCompile) {
 
 application {
   mainModule = 'org.auto.minwonauto'
-  mainClass = 'org.auto.minwonauto.HelloApplication'
+  mainClass = 'org.auto.minwonauto.MinwonApplication'
 }
 
 javafx {
@@ -38,6 +38,8 @@ dependencies {
   implementation 'org.seleniumhq.selenium:selenium-java:4.19.1'
   implementation 'org.junit.jupiter:junit-jupiter-engine:5.10.2'
   implementation 'org.junit.jupiter:junit-jupiter-api:5.10.2'
+  implementation 'net.java.dev.jna:jna:5.14.0'
+  implementation 'net.java.dev.jna:jna-platform:5.14.0'
 }
 
 test {

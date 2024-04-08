@@ -4,46 +4,42 @@ import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
-import org.openqa.selenium.By;
-import org.openqa.selenium.JavascriptExecutor;
-import org.openqa.selenium.WebDriver;
-import org.openqa.selenium.WebElement;
-import org.openqa.selenium.chrome.ChromeDriver;
-import org.openqa.selenium.interactions.PointerInput;
-import org.openqa.selenium.interactions.Sequence;
-import org.openqa.selenium.remote.RemoteWebDriver;
+import org.openqa.selenium.*;
 import org.openqa.selenium.support.ui.Wait;
 import org.openqa.selenium.support.ui.WebDriverWait;
+
+import util.Mouse;
 import utility.ApplyCategory;
 
+import java.awt.*;
 import java.time.Duration;
-import java.util.Collections;
-import java.util.concurrent.CountDownLatch;
 
 public class MinwonMainController {
+
+
 
     public static final String EDGE_NAME = "webdriver.edge.driver";
     public static final String EDGE_PATH = "C:\\Users\\user\\Desktop\\Test\\msedgedriver.exe";
 
+    public static Mouse mouse = new Mouse();
 
     @FXML
     private PasswordField gonginAuthField;
-
     private String gonginPassword;
-
     @FXML
     private Button startButton;
     @FXML
     private TextField minwonAuthField;
-
     @FXML
     private PasswordField minwonPasswordField;
 
+
+    @FXML
+    private Button chromeButton;
     private String recipientName;
     private String residentRegistrationNumber;
     private String defaultAddress;
     private String detailAddress;
-
     private ApplyCategory applyCategory;
 
 
@@ -51,13 +47,14 @@ public class MinwonMainController {
     private void initialize(){
         System.setProperty(EDGE_NAME,EDGE_PATH);
 
+        //startButton 초기화
         startButton.setText("시작");
         startButton.setStyle("-fx-background-color: #457ecd; -fx-text-fill:#ffffff;");
-
 
         startButton.setOnAction(event -> {
             gonginPassword = gonginAuthField.getText();
             gonginAuthField.setText("");
+
 
 //            CountDownLatch latch = new CountDownLatch(1);
 //            //Driver가 실행되는 동안 프로그램이 무한로딩이라 Thread 사용함.
@@ -72,23 +69,16 @@ public class MinwonMainController {
 //                    e.printStackTrace();
 //                }
 //
-//            });
+        });
 
-            Thread t2 = new Thread(() -> {
-                ChromeDriver chromeDriver = new ChromeDriver();
-                chromeDriver.get("https://gpms.childcare.go.kr/index4.jsp");
+        //chromeButton 초기화
+        chromeButton.setText("로그인 및 셋팅이 완료되면 눌러주세요.");
+        chromeButton.setStyle("-fx-background-color: #457ecd; -fx-text-fill:#ffffff;");
 
-                PointerInput mouse = new PointerInput(PointerInput.Kind.MOUSE,"default mouse");
-                Sequence actions = new Sequence(mouse, 0)
-                        .addAction(mouse.createPointerMove(Duration.ZERO,PointerInput.Origin.viewport(),8,12))
-                        .addAction(mouse.createPointerMove(Duration.ZERO,PointerInput.Origin.viewport(),8,12));
-
-                ((RemoteWebDriver) chromeDriver).perform(Collections.singletonList(actions));
-            });
-
-            t2.start();
+        chromeButton.setOnAction(event -> {
 
         });
+
     }
 
     private void minwonAutoProcess(WebDriver edgeDriver) {
@@ -132,10 +122,6 @@ public class MinwonMainController {
         //상세주소
         WebElement detailAddressField = edgeDriver.findElement(By.xpath("/html/body/div[2]/div[3]/div[3]/div[2]/div/form/dl/dd/dl/dd[3]/dl/dd[2]"));
         detailAddress = detailAddressField.getText();
-
-
-
-
 
 
     }

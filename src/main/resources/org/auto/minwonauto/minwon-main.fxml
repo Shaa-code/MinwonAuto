@@ -35,6 +35,10 @@
                 <Button fx:id="startButton" GridPane.columnIndex="1" GridPane.rowIndex="3"/>
             </GridPane>
 
+            <GridPane>
+                <Button fx:id="chromeButton" GridPane.columnIndex="1" GridPane.rowIndex="4"/>
+            </GridPane>
+
     </VBox>
 
 

@@ -8,6 +8,8 @@ import javafx.stage.Stage;
 import java.io.IOException;
 import java.net.URL;
 
+import static org.auto.minwonauto.MinwonMainController.mouse;
+
 public class MinwonApplication extends Application {
     @Override
     public void start(Stage stage) throws IOException {
@@ -22,5 +24,6 @@ public class MinwonApplication extends Application {
 
     public static void main(String[] args) {
         launch();
+        mouse.mouseMove(1800,600);
     }
 }
