@@ -1,7 +1,7 @@
 package utility;
 
 public enum ApplyCategory {
-    EXP("경력"), EMP("재직");
+    EXPERIENCE("경력"), EMPLOYEE("재직");
 
     private final String name;
 

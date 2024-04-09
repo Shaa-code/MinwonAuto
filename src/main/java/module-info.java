@@ -17,6 +17,7 @@ module org.auto.minwonauto {
     requires org.seleniumhq.selenium.devtools_v121;
     requires org.seleniumhq.selenium.devtools_v122;
     requires com.sun.jna.platform;
+    requires com.sun.jna;
 
     opens org.auto.minwonauto to javafx.fxml;
     exports org.auto.minwonauto;
