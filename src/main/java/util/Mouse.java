@@ -31,8 +31,7 @@ public class Mouse implements MouseInterface {
     }
 
     public static void mouseMove(int x, int y){
-//        mouseAction(0,0,MOUSEEVENTF_MOVE);
-        mouseAction(x,y,MOUSEEVENTF_MOVE);
+        mouseAction(x,-y,MOUSEEVENTF_MOVE);
     }
 
     public static void mouseLeftClick(int x, int y){

@@ -103,7 +103,7 @@ public class MinwonMainController {
 
         chromeButton.setOnAction(event -> {
             // 보육교직원/주민등록번호
-            mouse.mouseMove(1777, -390);
+            mouse.mouseMove(1777, 390);
             try {
                 Thread.sleep(1000);
             } catch (InterruptedException e) {
