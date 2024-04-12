@@ -15,7 +15,7 @@ public class MinwonApplication extends Application {
         URL resourceUrl = MinwonApplication.class.getClassLoader().getResource("org/auto/minwonauto/minwon-main.fxml");
         FXMLLoader fxmlLoader = new FXMLLoader(resourceUrl);
 
-        Scene scene = new Scene(fxmlLoader.load(), 370,80);
+        Scene scene = new Scene(fxmlLoader.load(), 313,200);
         stage.setTitle("민원 자동처리기");
         stage.setScene(scene);
         stage.show();
