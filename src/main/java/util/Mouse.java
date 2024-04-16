@@ -72,4 +72,14 @@ public class Mouse{
         input.input.mi.dwFlags = new DWORD(flags);
         User32.INSTANCE.SendInput(new DWORD(1), new INPUT[]{input}, input.size());
     }
+
+    //                //마우스 좌표
+//        AtomicReference<PointerInfo> pt = new AtomicReference<>(MouseInfo.getPointerInfo());
+//        Thread t1 = new Thread(() -> {
+//            while (true) {
+//                pt.set(MouseInfo.getPointerInfo());
+//                System.out.println(pt.get().getLocation().getX() + ", "+ pt.get().getLocation().getY());
+//            }
+//        });
+//        t1.start();
 }

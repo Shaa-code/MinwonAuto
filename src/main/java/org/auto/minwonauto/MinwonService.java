@@ -18,38 +18,38 @@ import java.util.Calendar;
 import java.util.GregorianCalendar;
 import java.util.Optional;
 
-import static org.auto.minwonauto.MinwonController.fieldContent;
-import static org.auto.minwonauto.MinwonController.processDisplay;
 import static utility.ApplyCategory.EXPERIENCE;
 
 public class MinwonService {
+    private WebDriver edgeDriver;
     private Robot robot;
     private Mouse mouse;
-
-    private WebDriver edgeDriver;
-
+    public static StringBuilder fieldContent;
+    public static final String minwonApplyPageUrl = minwonSearchCondition(6);
     private static final Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
     private static boolean defaultAddressFlag = false;
     private static boolean detailAddressFlag = false;
-    private String gonginPassword = MinwonController.gonginPassword;
+    public static final int REFRESH_SECOND = 5;
+
+    public static TextArea processDisplay;
+
 
     public MinwonService() throws AWTException {
-        robot = new Robot();
-        mouse = new Mouse();
-        edgeDriver = new EdgeDriver();
+        this.robot = new Robot();
+        this.mouse = new Mouse();
     }
 
-    private void minwonAutoProcess(WebDriver edgeDriver){
+    public void minwonAutoProcess(String gonginPassword){
 
-        minwonLogin(edgeDriver);
+        minwonLogin(gonginPassword);
         //지원날짜 찾기
-        final String minwonApplyPageUrl = minwonSearchCondition(6);
+        minwonFindProcess(minwonApplyPageUrl);
 
-        minwonFindProcess(edgeDriver, minwonApplyPageUrl);
+        busyWaitUntilFindFirstMinwon(minwonApplyPageUrl,REFRESH_SECOND);
+    }
 
-        busyWaitUntilFindFirstMinwon(edgeDriver, minwonApplyPageUrl);
-
-        Recipient recipient = recipientParse(edgeDriver);
+    public void chromeAutomation() {
+        Recipient recipient = recipientParse();
 
         // 보육교직원/주민등록번호
         mouse.move(1622, 390);
@@ -170,61 +170,61 @@ public class MinwonService {
         return minwonApplyPageUrl;
     }
 
-    private void minwonFindProcess(WebDriver edgeDriver, String minwonApplyPageUrl) {
-        Wait<WebDriver> wait = new WebDriverWait(edgeDriver, Duration.ofSeconds(30));
-        wait.until(driver -> ((JavascriptExecutor) edgeDriver).executeScript("return document.readyState")).equals("complete");
+    private void minwonFindProcess(String minwonApplyPageUrl) {
+        Wait<WebDriver> wait = new WebDriverWait(this.edgeDriver, Duration.ofSeconds(30));
+        wait.until(driver -> ((JavascriptExecutor) this.edgeDriver).executeScript("return document.readyState")).equals("complete");
 
         sleepSecond(2);
 
-        edgeDriver.get(minwonApplyPageUrl);
+        this.edgeDriver.get(minwonApplyPageUrl);
 
-        WebElement minwonSearchButton = edgeDriver.findElement(By.xpath("/html/body/div[2]/div[1]/div[3]/div[1]/div[1]/a"));
+        WebElement minwonSearchButton = this.edgeDriver.findElement(By.xpath("/html/body/div[2]/div[1]/div[3]/div[1]/div[1]/a"));
         minwonSearchButton.click();
 
-        WebElement receptionButton = edgeDriver.findElement(By.xpath("/html/body/div[2]/div[1]/div[3]/div[1]/div[2]/ul/li[2]/span[1]"));
+        WebElement receptionButton = this.edgeDriver.findElement(By.xpath("/html/body/div[2]/div[1]/div[3]/div[1]/div[2]/ul/li[2]/span[1]"));
         receptionButton.click();
     }
 
-    private void busyWaitUntilFindFirstMinwon(WebDriver edgeDriver, String minwonApplyPageUrl) {
-        WebElement firstMinwonButton = null;
 
-        final int REFRESH_SECOND = 10;
+
+
+    public void busyWaitUntilFindFirstMinwon(String minwonApplyPageUrl,int refreshSecond) {
+        WebElement firstMinwonButton = null;
         int cnt = 1;
-        while(firstMinwonButton == null){
+        while (firstMinwonButton == null) {
             try {
-                firstMinwonButton = edgeDriver.findElement(By.xpath("/html/body/div[2]/div[2]/form[2]/div[1]/table/tbody/tr/td[2]/a"));
-            }
-            catch (NoSuchElementException e){
-                try {
-                    Thread.sleep(1000 * REFRESH_SECOND); //실제로는 1.5배 더 걸림 왜인지 모르겠음.
-                } catch (InterruptedException ex) {
-                    throw new RuntimeException(ex);
-                }
-                edgeDriver.get(minwonApplyPageUrl);
-                fieldContent.append("재 탐색 " + cnt++ * REFRESH_SECOND + "초 동안 진행중.. \n");
+                firstMinwonButton = this.edgeDriver.findElement(By.xpath("/html/body/div[2]/div[2]/form[2]/div[1]/table/tbody/tr/td[2]/a"));
+                fieldContent.append("접수중인 데이터 있음.");
                 processDisplay.setText(fieldContent.toString());
-                processDisplay.setScrollTop(Double.MAX_VALUE); //자동으로 가장 밑으로 끌어내림.
+                firstMinwonButton.click();
+            } catch (NoSuchElementException e) {
+                try {
+                    Thread.sleep(1000 * refreshSecond); //실제로는 1.5배 더 걸림 왜인지 모르겠음.
+                    fieldContent.append("재 탐색 " + cnt++ * refreshSecond + "초 동안 진행중.. \n");
+                    processDisplay.setText(fieldContent.toString());
+                    this.edgeDriver.get(minwonApplyPageUrl);
+                } catch (InterruptedException ex) {
+                    throw new RuntimeException();
+                }
             }
         }
-
-        firstMinwonButton.click();
     }
 
-    private Recipient recipientParse(WebDriver edgeDriver) {
+    private Recipient recipientParse() {
         //주민등록번호
-        WebElement residentRegistrationField = edgeDriver.findElement(By.xpath("/html/body/div[2]/div[3]/div[3]/div[2]/div/form/dl/dd/dl/dd[1]/dl/dd[4]"));
+        WebElement residentRegistrationField = this.edgeDriver.findElement(By.xpath("/html/body/div[2]/div[3]/div[3]/div[2]/div/form/dl/dd/dl/dd[1]/dl/dd[4]"));
         String residentRegistrationFieldText = residentRegistrationField.getText();
         //성명
-        WebElement recipientNameField = edgeDriver.findElement(By.xpath("/html/body/div[2]/div[3]/div[3]/div[2]/div/form/dl/dd/dl/dd[1]/dl/dd[2]"));
+        WebElement recipientNameField = this.edgeDriver.findElement(By.xpath("/html/body/div[2]/div[3]/div[3]/div[2]/div/form/dl/dd/dl/dd[1]/dl/dd[2]"));
         String recipientName = recipientNameField.getText();
         //기본주소
-        WebElement defaultAddressField = edgeDriver.findElement(By.xpath("/html/body/div[2]/div[3]/div[3]/div[2]/div/form/dl/dd/dl/dd[2]/dl/dd[2]"));
+        WebElement defaultAddressField = this.edgeDriver.findElement(By.xpath("/html/body/div[2]/div[3]/div[3]/div[2]/div/form/dl/dd/dl/dd[2]/dl/dd[2]"));
         String defaultAddress = defaultAddressField.getText();
         //상세주소
-        WebElement detailAddressField = edgeDriver.findElement(By.xpath("/html/body/div[2]/div[3]/div[3]/div[2]/div/form/dl/dd/dl/dd[3]/dl/dd[2]"));
+        WebElement detailAddressField = this.edgeDriver.findElement(By.xpath("/html/body/div[2]/div[3]/div[3]/div[2]/div/form/dl/dd/dl/dd[3]/dl/dd[2]"));
         String detailAddress = detailAddressField.getText();
 
-        Optional<WebElement> optApplyCategoryField = Optional.ofNullable(edgeDriver.findElement(By.xpath("/html/body/div[2]/div[3]/div[3]/div[2]/div/form/dl/dd/dl/dd[5]/dl/dd")));
+        Optional<WebElement> optApplyCategoryField = Optional.ofNullable(this.edgeDriver.findElement(By.xpath("/html/body/div[2]/div[3]/div[3]/div[2]/div/form/dl/dd/dl/dd[5]/dl/dd")));
 
         return new RecipientBuilder()
                 .residentRegistrationNumber(residentRegistrationFieldText)
@@ -234,31 +234,33 @@ public class MinwonService {
                 .build();
     }
 
-    private void minwonLogin(WebDriver edgeDriver) {
+    private void minwonLogin(String gonginPassword) {
+        this.edgeDriver = new EdgeDriver();
+
         final String minwonMainUrl = "https://intra.gov.kr/g4g_admin/AA060_new_login.jsp";
 
-        edgeDriver.get(minwonMainUrl);
+        this.edgeDriver.get(minwonMainUrl);
 
-        edgeDriver.manage().timeouts().implicitlyWait(Duration.ofMillis(5000));
+        this.edgeDriver.manage().timeouts().implicitlyWait(Duration.ofMillis(5000));
 
-        WebElement authButton = edgeDriver.findElement(By.xpath("/html/body/div[1]/div[2]/div/div/ul[1]/li[1]/button"));
+        WebElement authButton = this.edgeDriver.findElement(By.xpath("/html/body/div[1]/div[2]/div/div/ul[1]/li[1]/button"));
 
-        edgeDriver.manage().timeouts().implicitlyWait(Duration.ofMillis(5000));
+        this.edgeDriver.manage().timeouts().implicitlyWait(Duration.ofMillis(5000));
 
-        Wait<WebDriver> wait = new WebDriverWait(edgeDriver, Duration.ofSeconds(10));
+        Wait<WebDriver> wait = new WebDriverWait(this.edgeDriver, Duration.ofSeconds(10));
 
         wait.until(edge -> authButton.isDisplayed());
         authButton.click();
 
-        wait = new WebDriverWait(edgeDriver, Duration.ofSeconds(10));
-        WebElement selectAdmin = edgeDriver.findElement(By.xpath("/html/body/div[1]/div/div[2]/div[3]/table/tbody/tr[2]/td[2]/div"));
+        wait = new WebDriverWait(this.edgeDriver, Duration.ofSeconds(10));
+        WebElement selectAdmin = this.edgeDriver.findElement(By.xpath("/html/body/div[1]/div/div[2]/div[3]/table/tbody/tr[2]/td[2]/div"));
         wait.until(edge -> selectAdmin.isDisplayed());
         selectAdmin.click();
 
-        WebElement certificatePassword = edgeDriver.findElement(By.xpath("/html/body/div[1]/div/div[2]/div[5]/table/tbody/tr/td[2]/form/div[1]/input[1]"));
+        WebElement certificatePassword = this.edgeDriver.findElement(By.xpath("/html/body/div[1]/div/div[2]/div[5]/table/tbody/tr/td[2]/form/div[1]/input[1]"));
         certificatePassword.sendKeys(gonginPassword);
 
-        WebElement certificateConfirm = edgeDriver.findElement(By.xpath("/html/body/div[1]/div/div[2]/div[6]/button[1]"));
+        WebElement certificateConfirm = this.edgeDriver.findElement(By.xpath("/html/body/div[1]/div/div[2]/div[6]/button[1]"));
         certificateConfirm.click();
 
     }
@@ -282,5 +284,9 @@ public class MinwonService {
             }
         }
         return false;
+    }
+
+    public StringBuilder getFieldContent() {
+        return fieldContent;
     }
 }
