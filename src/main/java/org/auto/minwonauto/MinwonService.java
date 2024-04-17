@@ -39,17 +39,34 @@ public class MinwonService {
     }
 
     public void minwonAutoProcess(String gonginPassword, TextArea processDisplay) throws Throwable {
-        displayAndExecute("1. 로그인 시도..", () -> minwonLogin(gonginPassword), "1. 로그인 성공..", "1. 로그인 실패..", processDisplay);
-        displayAndExecute("2. 민원신청서 페이지로 이동..", () -> gotoMinwonApplyPage(minwonApplyPageUrl), "2. 민원신청서 페이지로 이동 완료", "로그인 실패..", processDisplay);
-        displayAndExecute("3. 민원 찾기 시작..", () -> busyWaitUntilFindFirstMinwon(minwonApplyPageUrl,REFRESH_SECOND,processDisplay), "3. 민원 찾기 완료..", "3. 민원 찾기 오류..", processDisplay);
+
+        displayAndExecute("로그인 시도..",
+                        () -> minwonLogin(gonginPassword),
+                        "로그인 성공..",
+                        "로그인 실패..",
+                        processDisplay);
+
+        displayAndExecute("민원신청서 페이지로 이동..",
+                        () -> gotoMinwonApplyPage(minwonApplyPageUrl),
+                        "민원신청서 페이지로 이동 완료",
+                        "로그인 실패..", processDisplay);
+
+        displayAndExecute("민원 찾기 시작..",
+                        () -> busyWaitUntilFindFirstMinwon(minwonApplyPageUrl,REFRESH_SECOND,processDisplay),
+                        "민원 찾기 완료..",
+                        "민원 찾기 오류..",
+                        processDisplay);
+
     }
 
 
     private void displayProcess(String message, TextArea processDisplay){
-        fieldContent.append(message + "\n");
+        fieldContent.append(message).append("\n");
+        processDisplay.setScrollTop(Double.MAX_VALUE);
         processDisplay.setText(fieldContent.toString());
         processDisplay.appendText("");
     }
+
     private void displayAndExecute(String tryMessage, Action action, String successMessage, String failMessage, TextArea processDisplay) throws Throwable {
         try {
             displayProcess(tryMessage, processDisplay);
@@ -100,14 +117,16 @@ public class MinwonService {
         while (firstMinwonButton == null) {
             try {
                 firstMinwonButton = this.edgeDriver.findElement(By.xpath("/html/body/div[2]/div[2]/form[2]/div[1]/table/tbody/tr/td[2]/a"));
-                fieldContent.append("접수중인 데이터 있음.");
+                fieldContent.append("접수중인 데이터 있음.").append("\n");
                 processDisplay.setText(fieldContent.toString());
+                processDisplay.appendText("");
                 firstMinwonButton.click();
             } catch (NoSuchElementException e) {
                 try {
                     Thread.sleep(1000 * refreshSecond); //실제로는 1.5배 더 걸림 왜인지 모르겠음.
-                    fieldContent.append("재 탐색 " + cnt++ * refreshSecond + "초 동안 진행중.. \n");
+                    fieldContent.append("재 탐색 " + cnt++ * refreshSecond + "초 동안 진행중..").append("\n");
                     processDisplay.setText(fieldContent.toString());
+                    processDisplay.appendText("");
                     this.edgeDriver.get(minwonApplyPageUrl);
                 } catch (InterruptedException ex) {
                     throw new RuntimeException();
@@ -295,9 +314,5 @@ public class MinwonService {
                 throw new RuntimeException("주소가 다름");
             }
         }
-    }
-
-    public StringBuilder getFieldContent() {
-        return fieldContent;
     }
 }

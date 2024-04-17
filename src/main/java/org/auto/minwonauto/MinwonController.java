@@ -1,6 +1,5 @@
 package org.auto.minwonauto;
 
-import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.PasswordField;
@@ -39,10 +38,14 @@ public class MinwonController{
         fieldContent.append("프로그램을 시작합니다.\n");
         processDisplay.setText(fieldContent.toString());
 
+        startButton.setDisable(true);
+        researchButton.setDisable(false);
+
         Thread t1 = new Thread(() -> {
             try {
                 minwonService.minwonAutoProcess(gonginPassword ,processDisplay);
             } catch (Throwable e) {
+                startButton.setDisable(false);
                 throw new RuntimeException(e);
             }
         });
@@ -51,12 +54,14 @@ public class MinwonController{
 
     @FXML
     private void handleResearchButtonAction(){
+        researchButton.setDisable(true);
         Thread t2 = new Thread(() -> {
             try {
-                fieldContent.append("민원 찾기 시작..");
+                fieldContent.append("민원 찾기 시작..").append("\n");
                 minwonService.busyWaitUntilFindFirstMinwon(minwonApplyPageUrl, REFRESH_SECOND, processDisplay);
             } catch (Exception e) {
-                fieldContent.append("민원 찾기 오류..");
+                fieldContent.append("민원 찾기 오류..").append("\n");
+                startButton.setDisable(false);
                 processDisplay.setText(fieldContent.toString());
             }
         });
@@ -81,6 +86,7 @@ public class MinwonController{
         startButton.setOnAction(event -> {handleStartButtonAction();});
 
         //researchButton
+        researchButton.setDisable(true);
         researchButton.setText("재탐색");
         researchButton.setStyle("-fx-background-color: #457ecd; -fx-text-fill:#ffffff;");
         researchButton.setOnAction(event -> {handleResearchButtonAction();});
