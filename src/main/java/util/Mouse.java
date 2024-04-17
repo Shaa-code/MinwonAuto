@@ -73,7 +73,9 @@ public class Mouse{
         User32.INSTANCE.SendInput(new DWORD(1), new INPUT[]{input}, input.size());
     }
 
-    //                //마우스 좌표
+//    private static PointerInfo pt = MouseInfo.getPointerInfo();
+
+//        //마우스 좌표
 //        AtomicReference<PointerInfo> pt = new AtomicReference<>(MouseInfo.getPointerInfo());
 //        Thread t1 = new Thread(() -> {
 //            while (true) {
