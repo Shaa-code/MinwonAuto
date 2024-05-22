@@ -14,8 +14,8 @@ public class MinwonApplication extends Application {
     public void start(Stage stage) throws IOException {
         URL resourceUrl = MinwonApplication.class.getClassLoader().getResource("org/auto/minwonauto/minwon-main.fxml");
         FXMLLoader fxmlLoader = new FXMLLoader(resourceUrl);
-
         Scene scene = new Scene(fxmlLoader.load(), 313,200);
+        stage.setAlwaysOnTop(true);
         stage.setTitle("민원 자동처리기");
         stage.setScene(scene);
         stage.show();

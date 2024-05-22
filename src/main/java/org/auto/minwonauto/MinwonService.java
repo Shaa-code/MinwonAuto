@@ -1,5 +1,6 @@
 package org.auto.minwonauto;
 
+import javafx.scene.control.Button;
 import org.openqa.selenium.*;
 import org.openqa.selenium.edge.EdgeDriver;
 import org.openqa.selenium.support.ui.Wait;
@@ -22,42 +23,65 @@ import java.util.Optional;
 import static utility.ApplyCategory.EXPERIENCE;
 
 public class MinwonService {
-    private WebDriver edgeDriver;
+    public WebDriver edgeDriverForMinwon = new EdgeDriver();
+
+    public WebDriver edgeDriverForAnyWhereMinwon = new EdgeDriver();
     private Robot robot;
     private Mouse mouse;
     public static final StringBuilder fieldContent = new StringBuilder();
     public static final String minwonApplyPageUrl = minwonSearchCondition(6);
+    public static final String minwonAnywhereApplyPageUrl = minwonAnywhereSearchCondition(6);
     private static final Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
 
-    private static boolean defaultAddressFlag = false;
-    private static boolean detailAddressFlag = false;
+    private static boolean whenMinwonFound = false;
     public static final int REFRESH_SECOND = 5;
+    private boolean defaultAddressFlag;
+    private boolean detailAddressFlag;
 
     public MinwonService() throws AWTException {
         this.robot = new Robot();
         this.mouse = new Mouse();
     }
 
-    public void minwonAutoProcess(String gonginPassword, TextArea processDisplay) throws Throwable {
+    public void minwonAutoProcess(String gonginPassword, TextArea processDisplay, Button researchButton) throws Throwable {
 
         displayAndExecute("로그인 시도..",
-                        () -> minwonLogin(gonginPassword),
-                        "로그인 성공..",
-                        "로그인 실패..",
-                        processDisplay);
+                () -> minwonLogin(edgeDriverForMinwon, gonginPassword),
+                "로그인 성공..",
+                "로그인 실패..",
+                processDisplay);
 
         displayAndExecute("민원신청서 페이지로 이동..",
-                        () -> gotoMinwonApplyPage(minwonApplyPageUrl),
-                        "민원신청서 페이지로 이동 완료",
-                        "로그인 실패..", processDisplay);
+                () -> gotoMinwonApplyPage(edgeDriverForMinwon, minwonApplyPageUrl),
+                "민원신청서 페이지로 이동 완료",
+                "로그인 실패..", processDisplay);
 
         displayAndExecute("민원 찾기 시작..",
-                        () -> busyWaitUntilFindFirstMinwon(minwonApplyPageUrl,REFRESH_SECOND,processDisplay),
-                        "민원 찾기 완료..",
-                        "민원 찾기 오류..",
-                        processDisplay);
-
+                () -> busyWaitUntilFindFirstMinwon(edgeDriverForMinwon, minwonApplyPageUrl, REFRESH_SECOND, processDisplay, researchButton),
+                "민원 찾기 완료..",
+                "민원 찾기 오류..",
+                processDisplay);
     }
+
+    public void minwonAnywhereAutoProcess(String gonginPassword, TextArea processDisplay, Button researchButton) throws Throwable {
+        displayAndExecute("로그인 시도..",
+                () -> minwonLogin(edgeDriverForAnyWhereMinwon, gonginPassword),
+                "어디서나 민원 로그인 성공..",
+                "어디서나 민원 로그인 실패..",
+                processDisplay);
+
+        displayAndExecute("어디서나 민원신청서 페이지로 이동..",
+                () -> gotoMinwonApplyPage(edgeDriverForAnyWhereMinwon, minwonAnywhereApplyPageUrl),
+                "어디서나 민원신청서 페이지로 이동 완료",
+                "로그인 실패..", processDisplay);
+
+        displayAndExecute("어디서나 민원찾기 시작..",
+                () -> busyWaitUntilFindFirstAnywhereMinwon(edgeDriverForAnyWhereMinwon, minwonAnywhereApplyPageUrl, REFRESH_SECOND, processDisplay, researchButton),
+                "어디서나 민원 찾기 완료..",
+                "어디서나 민원 찾기 오류",
+                processDisplay);
+    }
+
 
 
     private void displayProcess(String message, TextArea processDisplay){
@@ -95,39 +119,58 @@ public class MinwonService {
         return minwonApplyPageUrl;
     }
 
-    private void gotoMinwonApplyPage(String minwonApplyPageUrl) {
-        Wait<WebDriver> wait = new WebDriverWait(this.edgeDriver, Duration.ofSeconds(30));
-        wait.until(driver -> ((JavascriptExecutor) this.edgeDriver).executeScript("return document.readyState")).equals("complete");
+    private static String minwonAnywhereSearchCondition(int agoFromToday) {
+        GregorianCalendar calendar = new GregorianCalendar();
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd");
+
+        final String today = sdf.format(calendar.getTime());
+
+        calendar.add(Calendar.DATE, -agoFromToday);
+        final String sixdaysAgo = sdf.format(calendar.getTime());
+
+        final String minwonAnywhereApplyPageUrl = "https://intra.gov.kr/my/AA180FaxListeringOffer.do?organ_cd=3460000&organ_type=2&proc_stat=0102&" +
+                "from_accp_day " + sixdaysAgo +
+                "&to_accp_day=" + today +
+                "&HIGH_MENU_ID=1000552&MENU_ID=1000076&MENU_INDEX=1&SUB_MENU_INDEX=2";
+
+        return minwonAnywhereApplyPageUrl;
+    }
+
+    private void gotoMinwonApplyPage(WebDriver webDriver, String minwonApplyPageUrl) {
+        Wait<WebDriver> wait = new WebDriverWait(webDriver, Duration.ofSeconds(30));
+        wait.until(driver -> ((JavascriptExecutor) webDriver).executeScript("return document.readyState")).equals("complete");
 
         sleepSecond(2);
 
-        this.edgeDriver.get(minwonApplyPageUrl);
+        webDriver.get(minwonApplyPageUrl);
 
-        WebElement minwonSearchButton = this.edgeDriver.findElement(By.xpath("/html/body/div[2]/div[1]/div[3]/div[1]/div[1]/a"));
+        WebElement minwonSearchButton = webDriver.findElement(By.xpath("/html/body/div[2]/div[1]/div[3]/div[1]/div[1]/a"));
         minwonSearchButton.click();
 
-        WebElement receptionButton = this.edgeDriver.findElement(By.xpath("/html/body/div[2]/div[1]/div[3]/div[1]/div[2]/ul/li[2]/span[1]"));
+        WebElement receptionButton = webDriver.findElement(By.xpath("/html/body/div[2]/div[1]/div[3]/div[1]/div[2]/ul/li[2]/span[1]"));
         receptionButton.click();
     }
 
-
-    public void busyWaitUntilFindFirstMinwon(String minwonApplyPageUrl,int refreshSecond,TextArea processDisplay) {
+    public void busyWaitUntilFindFirstMinwon(WebDriver webDriver,String minwonApplyPageUrl, int refreshSecond, TextArea processDisplay, Button researchButton) {
         WebElement firstMinwonButton = null;
         int cnt = 1;
-        while (firstMinwonButton == null) {
+        while (firstMinwonButton == null && !whenMinwonFound) {
             try {
-                firstMinwonButton = this.edgeDriver.findElement(By.xpath("/html/body/div[2]/div[2]/form[2]/div[1]/table/tbody/tr/td[2]/a"));
-                fieldContent.append("접수중인 데이터 있음.").append("\n");
+                firstMinwonButton = webDriver.findElement(By.xpath("/html/body/div[2]/div[2]/form[2]/div[1]/table/tbody/tr/td[2]/a"));
+                fieldContent.append("민원이 접수되었습니다.").append("\n");
+                processDisplay.setStyle("-fx-background-color: green");
+                researchButton.setDisable(false);
                 processDisplay.setText(fieldContent.toString());
                 processDisplay.appendText("");
                 firstMinwonButton.click();
+                whenMinwonFound = true;
             } catch (NoSuchElementException e) {
                 try {
                     Thread.sleep(1000 * refreshSecond); //실제로는 1.5배 더 걸림 왜인지 모르겠음.
                     fieldContent.append("재 탐색 " + cnt++ * refreshSecond + "초 동안 진행중..").append("\n");
                     processDisplay.setText(fieldContent.toString());
                     processDisplay.appendText("");
-                    this.edgeDriver.get(minwonApplyPageUrl);
+                    this.edgeDriverForMinwon.get(minwonApplyPageUrl);
                 } catch (InterruptedException ex) {
                     throw new RuntimeException();
                 }
@@ -135,60 +178,66 @@ public class MinwonService {
         }
     }
 
-    private Recipient recipientParse() {
-        //주민등록번호
-        WebElement residentRegistrationField = this.edgeDriver.findElement(By.xpath("/html/body/div[2]/div[3]/div[3]/div[2]/div/form/dl/dd/dl/dd[1]/dl/dd[4]"));
-        String residentRegistrationFieldText = residentRegistrationField.getText();
-        //성명
-        WebElement recipientNameField = this.edgeDriver.findElement(By.xpath("/html/body/div[2]/div[3]/div[3]/div[2]/div/form/dl/dd/dl/dd[1]/dl/dd[2]"));
-        String recipientName = recipientNameField.getText();
-        //기본주소
-        WebElement defaultAddressField = this.edgeDriver.findElement(By.xpath("/html/body/div[2]/div[3]/div[3]/div[2]/div/form/dl/dd/dl/dd[2]/dl/dd[2]"));
-        String defaultAddress = defaultAddressField.getText();
-        //상세주소
-        WebElement detailAddressField = this.edgeDriver.findElement(By.xpath("/html/body/div[2]/div[3]/div[3]/div[2]/div/form/dl/dd/dl/dd[3]/dl/dd[2]"));
-        String detailAddress = detailAddressField.getText();
-
-        Optional<WebElement> optApplyCategoryField = Optional.ofNullable(this.edgeDriver.findElement(By.xpath("/html/body/div[2]/div[3]/div[3]/div[2]/div/form/dl/dd/dl/dd[5]/dl/dd")));
-
-        return new RecipientBuilder()
-                .residentRegistrationNumber(residentRegistrationFieldText)
-                .recipientName(recipientName)
-                .defaultAddress(defaultAddress)
-                .detailAddress(detailAddress)
-                .build();
+    public void busyWaitUntilFindFirstAnywhereMinwon(WebDriver webDriver,String minwonApplyPageUrl, int refreshSecond, TextArea processDisplay, Button researchButton) {
+        WebElement firstMinwonButton = null;
+        int cnt = 1;
+        while (firstMinwonButton == null && whenMinwonFound == false) {
+            try {
+                firstMinwonButton = this.edgeDriverForAnyWhereMinwon.findElement(By.xpath("/html/body/div[2]/div[2]/form/div[5]/table/tbody/tr/td[2]/a"));
+                fieldContent.append("어디서나 민원이 접수되었습니다.").append("\n");
+                processDisplay.setStyle("-fx-background-color: blue");
+                researchButton.setDisable(false);
+                processDisplay.setText(fieldContent.toString());
+                processDisplay.appendText("");
+                firstMinwonButton.click();
+                whenMinwonFound = true;
+            } catch (NoSuchElementException e) {
+                try {
+                    Thread.sleep(1000 * refreshSecond); //실제로는 1.5배 더 걸림 왜인지 모르겠음.
+                    fieldContent.append("재 탐색 " + cnt++ * refreshSecond + "초 동안 진행중..").append("\n");
+                    processDisplay.setText(fieldContent.toString());
+                    processDisplay.appendText("");
+                    this.edgeDriverForAnyWhereMinwon.get(minwonApplyPageUrl);
+                } catch (InterruptedException ex) {
+                    throw new RuntimeException();
+                }
+            }
+        }
     }
 
-    private void minwonLogin(String gonginPassword) {
-        this.edgeDriver = new EdgeDriver();
+    private void minwonLogin(WebDriver webDriver, String gonginPassword) {
 
         final String minwonMainUrl = "https://intra.gov.kr/g4g_admin/AA060_new_login.jsp";
 
-        this.edgeDriver.get(minwonMainUrl);
+        webDriver.get(minwonMainUrl);
 
-        this.edgeDriver.manage().timeouts().implicitlyWait(Duration.ofMillis(5000));
+        webDriver.manage().timeouts().implicitlyWait(Duration.ofMillis(5000));
 
-        WebElement authButton = this.edgeDriver.findElement(By.xpath("/html/body/div[1]/div[2]/div/div/ul[1]/li[1]/button"));
+        WebElement authButton = webDriver.findElement(By.xpath("/html/body/div[1]/div[2]/div/div/ul[1]/li[1]/button"));
 
-        this.edgeDriver.manage().timeouts().implicitlyWait(Duration.ofMillis(5000));
+        webDriver.manage().timeouts().implicitlyWait(Duration.ofMillis(5000));
 
-        Wait<WebDriver> wait = new WebDriverWait(this.edgeDriver, Duration.ofSeconds(10));
+        Wait<WebDriver> wait = new WebDriverWait(webDriver, Duration.ofSeconds(10));
 
         wait.until(edge -> authButton.isDisplayed());
         authButton.click();
 
-        wait = new WebDriverWait(this.edgeDriver, Duration.ofSeconds(10));
-        WebElement selectAdmin = this.edgeDriver.findElement(By.xpath("/html/body/div[1]/div/div[2]/div[3]/table/tbody/tr[2]/td[2]/div"));
+        wait = new WebDriverWait(webDriver, Duration.ofSeconds(10));
+        WebElement selectAdmin = webDriver.findElement(By.xpath("/html/body/div[1]/div/div[2]/div[3]/table/tbody/tr/td[2]/div"));
+
         wait.until(edge -> selectAdmin.isDisplayed());
         selectAdmin.click();
 
-        WebElement certificatePassword = this.edgeDriver.findElement(By.xpath("/html/body/div[1]/div/div[2]/div[5]/table/tbody/tr/td[2]/form/div[1]/input[1]"));
+        WebElement certificatePassword = webDriver.findElement(By.xpath("/html/body/div[1]/div/div[2]/div[5]/table/tbody/tr/td[2]/form/div[1]/input[1]"));
         certificatePassword.sendKeys(gonginPassword);
 
-        WebElement certificateConfirm = this.edgeDriver.findElement(By.xpath("/html/body/div[1]/div/div[2]/div[6]/button[1]"));
+        WebElement certificateConfirm = webDriver.findElement(By.xpath("/html/body/div[1]/div/div[2]/div[6]/button[1]"));
         certificateConfirm.click();
 
     }
+
+
+
 
     public void sleepSecond(int second) {
         try {
@@ -211,8 +260,8 @@ public class MinwonService {
         return false;
     }
 
-    public void chromeAutomation() {
-        Recipient recipient = recipientParse();
+    public void chromeAutomation(WebDriver webDriver) {
+        Recipient recipient = recipientParse(webDriver);
 
         // 보육교직원/주민등록번호
         mouse.move(1622, 390);
@@ -314,5 +363,32 @@ public class MinwonService {
                 throw new RuntimeException("주소가 다름");
             }
         }
+
+
     }
+
+        private Recipient recipientParse(WebDriver edgeDriver) {
+        //주민등록번호
+        WebElement residentRegistrationField = edgeDriver.findElement(By.xpath("/html/body/div[2]/div[3]/div[3]/div[2]/div/form/dl/dd/dl/dd[1]/dl/dd[4]"));
+        String residentRegistrationFieldText = residentRegistrationField.getText();
+        //성명
+        WebElement recipientNameField = edgeDriver.findElement(By.xpath("/html/body/div[2]/div[3]/div[3]/div[2]/div/form/dl/dd/dl/dd[1]/dl/dd[2]"));
+        String recipientName = recipientNameField.getText();
+        //기본주소
+        WebElement defaultAddressField = edgeDriver.findElement(By.xpath("/html/body/div[2]/div[3]/div[3]/div[2]/div/form/dl/dd/dl/dd[2]/dl/dd[2]"));
+        String defaultAddress = defaultAddressField.getText();
+        //상세주소
+        WebElement detailAddressField = edgeDriver.findElement(By.xpath("/html/body/div[2]/div[3]/div[3]/div[2]/div/form/dl/dd/dl/dd[3]/dl/dd[2]"));
+        String detailAddress = detailAddressField.getText();
+
+        Optional<WebElement> optApplyCategoryField = Optional.ofNullable(edgeDriver.findElement(By.xpath("/html/body/div[2]/div[3]/div[3]/div[2]/div/form/dl/dd/dl/dd[5]/dl/dd")));
+
+        return new Recipient.RecipientBuilder()
+                .residentRegistrationNumber(residentRegistrationFieldText)
+                .recipientName(recipientName)
+                .defaultAddress(defaultAddress)
+                .detailAddress(detailAddress)
+                .build();
+    }
+
 }
