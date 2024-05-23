@@ -5,13 +5,12 @@ import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextArea;
-import org.openqa.selenium.WebDriver;
 
 import java.awt.*;
 
 import static org.auto.minwonauto.MinwonService.*;
-import static util.PathVariable.EDGE_NAME;
-import static util.PathVariable.EDGE_PATH;
+import static util.EnvironmentVariable.EDGE_NAME;
+import static util.EnvironmentVariable.EDGE_PATH;
 
 
 public class MinwonController implements ProcessDisplayUpdater{
@@ -55,7 +54,7 @@ public class MinwonController implements ProcessDisplayUpdater{
         });
         t1.start();
 
-        Thread t2 = new Thread(() -> {
+        Thread t2= new Thread(() -> {
             try {
                 minwonService.minwonAnywhereAutoProcess(gonginPassword ,processDisplay,researchButton);
             } catch (Throwable e) {
@@ -67,32 +66,43 @@ public class MinwonController implements ProcessDisplayUpdater{
     }
 
     @FXML
-    private void handleResearchButtonAction(){
+    private void handleResearchButtonAction() {
         researchButton.setDisable(true);
+
         Thread t1 = new Thread(() -> {
             try {
-                fieldContent.append("민원 찾기 시작..").append("\n");
-                processDisplay.setStyle("-fx-background-color: white");
-                minwonService.busyWaitUntilFindFirstMinwon(minwonService.edgeDriverForMinwon, minwonApplyPageUrl, REFRESH_SECOND, processDisplay,researchButton);
+                whenMinwonFound = false;
+                Platform.runLater(() -> {
+                    fieldContent.append("일반 민원 찾기 시작..").append("\n");
+                    processDisplay.setStyle("-fx-background-color: white");
+                });
+                minwonService.busyWaitUntilFindFirstMinwon(minwonApplyPageUrl, REFRESH_SECOND, processDisplay, researchButton);
             } catch (Exception e) {
-                fieldContent.append("민원 찾기 오류..").append("\n");
-                processDisplay.setStyle("-fx-background-color: red");
-                startButton.setDisable(false);
-                processDisplay.setText(fieldContent.toString());
+                Platform.runLater(() -> {
+                    fieldContent.append("일반 민원 찾기 오류..").append("\n");
+                    processDisplay.setStyle("-fx-background-color: red");
+                    startButton.setDisable(false);
+                    processDisplay.setText(fieldContent.toString());
+                });
             }
         });
         t1.start();
 
         Thread t2 = new Thread(() -> {
             try {
-                fieldContent.append("어디서나 민원 찾기 시작..").append("\n");
-                processDisplay.setStyle("-fx-background-color: white");
-                minwonService.busyWaitUntilFindFirstAnywhereMinwon(minwonService.edgeDriverForAnyWhereMinwon, minwonAnywhereApplyPageUrl,REFRESH_SECOND,processDisplay,researchButton);
+                whenMinwonFound = false;
+                Platform.runLater(() -> {
+                    fieldContent.append("어디서나 민원 찾기 시작..").append("\n");
+                    processDisplay.setStyle("-fx-background-color: white");
+                });
+                minwonService.busyWaitUntilFindFirstAnywhereMinwon(minwonAnywhereApplyPageUrl, REFRESH_SECOND, processDisplay, researchButton);
             } catch (Exception e) {
-                fieldContent.append("어디서나 민원 찾기 오류..").append("\n");
-                processDisplay.setStyle("-fx-background-color: red");
-                startButton.setDisable(false);
-                processDisplay.setText(fieldContent.toString());
+                Platform.runLater(() -> {
+                    fieldContent.append("어디서나 민원 찾기 오류..").append("\n");
+                    processDisplay.setStyle("-fx-background-color: red");
+                    startButton.setDisable(false);
+                    processDisplay.setText(fieldContent.toString());
+                });
             }
         });
         t2.start();

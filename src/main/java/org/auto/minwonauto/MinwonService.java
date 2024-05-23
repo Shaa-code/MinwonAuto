@@ -23,20 +23,18 @@ import java.util.Optional;
 import static utility.ApplyCategory.EXPERIENCE;
 
 public class MinwonService {
-    public WebDriver edgeDriverForMinwon = new EdgeDriver();
-
-    public WebDriver edgeDriverForAnyWhereMinwon = new EdgeDriver();
-    private Robot robot;
-    private Mouse mouse;
+    public final WebDriver edgeDriverForMinwon = new EdgeDriver();
+    public final WebDriver edgeDriverForAnyWhereMinwon = new EdgeDriver();
     public static final StringBuilder fieldContent = new StringBuilder();
     public static final String minwonApplyPageUrl = minwonSearchCondition(6);
     public static final String minwonAnywhereApplyPageUrl = minwonAnywhereSearchCondition(6);
-    private static final Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
-
-    private static boolean whenMinwonFound = false;
+    public static boolean whenMinwonFound = false;
     public static final int REFRESH_SECOND = 5;
+    private static final Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
     private boolean defaultAddressFlag;
     private boolean detailAddressFlag;
+    private Robot robot;
+    private Mouse mouse;
 
     public MinwonService() throws AWTException {
         this.robot = new Robot();
@@ -45,21 +43,21 @@ public class MinwonService {
 
     public void minwonAutoProcess(String gonginPassword, TextArea processDisplay, Button researchButton) throws Throwable {
 
-        displayAndExecute("민원 로그인 시도..",
+        displayAndExecute("일반 민원 로그인 시도..",
                 () -> minwonLogin(edgeDriverForMinwon, gonginPassword),
-                "민원 로그인 성공..",
-                "민원 로그인 실패..",
+                "일반 민원 로그인 성공..",
+                "일반 민원 로그인 실패..",
                 processDisplay);
 
-        displayAndExecute("민원 신청서 페이지로 이동..",
+        displayAndExecute("일반 민원 신청서 페이지로 이동..",
                 () -> gotoMinwonApplyPage(edgeDriverForMinwon, minwonApplyPageUrl),
-                "민원 신청서 페이지로 이동 완료",
+                "일반 민원 신청서 페이지로 이동 완료",
                 "로그인 실패..", processDisplay);
 
-        displayAndExecute("민원 찾기 시작..",
-                () -> busyWaitUntilFindFirstMinwon(edgeDriverForMinwon, minwonApplyPageUrl, REFRESH_SECOND, processDisplay, researchButton),
-                "민원 찾기 완료..",
-                "민원 찾기 오류..",
+        displayAndExecute("일반 민원 찾기 시작..",
+                () -> busyWaitUntilFindFirstMinwon(minwonApplyPageUrl, REFRESH_SECOND, processDisplay, researchButton),
+                "일반 민원 찾기 완료..",
+                "일반 민원 찾기 오류..",
                 processDisplay);
     }
 
@@ -76,7 +74,7 @@ public class MinwonService {
                 "어디서나 민원 로그인 실패..", processDisplay);
 
         displayAndExecute("어디서나 민원찾기 시작..",
-                () -> busyWaitUntilFindFirstAnywhereMinwon(edgeDriverForAnyWhereMinwon, minwonAnywhereApplyPageUrl, REFRESH_SECOND, processDisplay, researchButton),
+                () -> busyWaitUntilFindFirstAnywhereMinwon(minwonAnywhereApplyPageUrl, REFRESH_SECOND, processDisplay, researchButton),
                 "어디서나 민원 찾기 완료..",
                 "어디서나 민원 찾기 오류",
                 processDisplay);
@@ -151,19 +149,20 @@ public class MinwonService {
         receptionButton.click();
     }
 
-    public void busyWaitUntilFindFirstMinwon(WebDriver webDriver,String minwonApplyPageUrl, int refreshSecond, TextArea processDisplay, Button researchButton) {
+    public void busyWaitUntilFindFirstMinwon(String minwonApplyPageUrl, int refreshSecond, TextArea processDisplay, Button researchButton) {
         WebElement firstMinwonButton = null;
         int cnt = 1;
         while (firstMinwonButton == null && !whenMinwonFound) {
             try {
                 firstMinwonButton = this.edgeDriverForMinwon.findElement(By.xpath("/html/body/div[2]/div[2]/form[2]/div[1]/table/tbody/tr/td[2]/a"));
-                fieldContent.append("민원이 접수되었습니다.").append("\n");
+                fieldContent.append("일반 민원이 접수되었습니다.").append("\n");
                 processDisplay.setStyle("-fx-background-color: green");
                 researchButton.setDisable(false);
                 processDisplay.setText(fieldContent.toString());
                 processDisplay.appendText("");
                 firstMinwonButton.click();
                 whenMinwonFound = true;
+
             } catch (NoSuchElementException e) {
                 try {
                     Thread.sleep(1000 * refreshSecond); //실제로는 1.5배 더 걸림 왜인지 모르겠음.
@@ -178,10 +177,10 @@ public class MinwonService {
         }
     }
 
-    public void busyWaitUntilFindFirstAnywhereMinwon(WebDriver webDriver,String minwonApplyPageUrl, int refreshSecond, TextArea processDisplay, Button researchButton) {
+    public void busyWaitUntilFindFirstAnywhereMinwon(String minwonApplyPageUrl, int refreshSecond, TextArea processDisplay, Button researchButton) {
         WebElement firstMinwonButton = null;
         int cnt = 1;
-        while (firstMinwonButton == null && whenMinwonFound == false) {
+        while (firstMinwonButton == null && !whenMinwonFound) {
             try {
                 firstMinwonButton = this.edgeDriverForAnyWhereMinwon.findElement(By.xpath("/html/body/div[2]/div[2]/form/div[5]/table/tbody/tr/td[2]/a"));
                 fieldContent.append("어디서나 민원이 접수되었습니다.").append("\n");
