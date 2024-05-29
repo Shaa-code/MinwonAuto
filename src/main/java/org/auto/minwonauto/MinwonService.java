@@ -235,9 +235,6 @@ public class MinwonService {
 
     }
 
-
-
-
     public void sleepSecond(int second) {
         try {
             Thread.sleep(1000 * second);
