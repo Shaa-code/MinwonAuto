@@ -27,10 +27,13 @@ public class MinwonController implements ProcessDisplayUpdater{
     @FXML
     private TextArea processDisplay;
 
-    ExecutorService executorService = Executors.newFixedThreadPool(10);
+    private ExecutorService executorService;
+    private final StringBuilder fieldContent;
     private MinwonService minwonService;
     public MinwonController() throws AWTException {
+        this.fieldContent = new StringBuilder();
         this.minwonService = new MinwonService(this);
+        this.executorService = Executors.newFixedThreadPool(10);
     }
 
 
@@ -46,7 +49,7 @@ public class MinwonController implements ProcessDisplayUpdater{
         researchButton.setDisable(false);
         executorService.submit(() -> {
             try {
-                minwonService.minwonAutoProcess(gonginPassword,researchButton);
+                minwonService.minwonAutoProcess(gonginPassword);
             } catch (Throwable e) {
                 Platform.runLater(() -> startButton.setDisable(false));
                 throw new RuntimeException(e);
@@ -56,7 +59,7 @@ public class MinwonController implements ProcessDisplayUpdater{
 
         executorService.submit(() -> {
             try {
-                minwonService.minwonAnywhereAutoProcess(gonginPassword,researchButton);
+                minwonService.minwonAnywhereAutoProcess(gonginPassword);
             } catch (Throwable e) {
                 startButton.setDisable(false);
                 throw new RuntimeException(e);

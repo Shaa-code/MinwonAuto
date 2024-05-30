@@ -4,6 +4,7 @@ import javafx.application.Platform;
 import javafx.scene.control.Button;
 import org.openqa.selenium.*;
 import org.openqa.selenium.edge.EdgeDriver;
+import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.Wait;
 import org.openqa.selenium.support.ui.WebDriverWait;
 import util.Mouse;
@@ -24,25 +25,35 @@ import java.util.Optional;
 import static utility.ApplyCategory.EXPERIENCE;
 
 public class MinwonService{
-    public final WebDriver edgeDriverForMinwon = new EdgeDriver();
-    public final WebDriver edgeDriverForAnyWhereMinwon = new EdgeDriver();
-    public static final StringBuilder fieldContent = new StringBuilder();
+
+    private static final String MINWON_MAIN_URL = "https://intra.gov.kr/g4g_admin/AA060_new_login.jsp";
+    private static final String XPATH_AUTH_BUTTON = "/html/body/div[1]/div[2]/div/div/ul[1]/li[1]/button";
+    private static final String XPATH_SELECT_ADMIN =  "/html/body/div[1]/div/div[2]/div[3]/table/tbody/tr/td[2]/div";
+    private static final String XPATH_CERTIFICATE_PASSWORD = "/html/body/div[1]/div/div[2]/div[5]/table/tbody/tr/td[2]/form/div[1]/input[1]";
+    private static final String XPATH_CERTIFICATE_CONFIRM = "/html/body/div[1]/div/div[2]/div[6]/button[1]";
+
+    private final WebDriver edgeDriverForMinwon;
+    private final WebDriver edgeDriverForAnyWhereMinwon;
     public static final String minwonApplyPageUrl = minwonSearchCondition(6);
     public static final String minwonAnywhereApplyPageUrl = minwonAnywhereSearchCondition(6);
+    private final Clipboard clipboard;
     public static boolean whenMinwonFound = false;
     public static final int REFRESH_SECOND = 5;
 
     private ProcessDisplayUpdater observer;
-    private static final Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
     private boolean defaultAddressFlag;
     private boolean detailAddressFlag;
     private Robot robot;
     private Mouse mouse;
 
     public MinwonService(ProcessDisplayUpdater observer) throws AWTException {
-        this.observer = observer;
+        this.clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
+        this.edgeDriverForMinwon = new EdgeDriver();
+        this.edgeDriverForAnyWhereMinwon = new EdgeDriver();
         this.robot = new Robot();
         this.mouse = new Mouse();
+        this.observer = observer;
+
     }
 
     private void notify(String message){
@@ -63,9 +74,7 @@ public class MinwonService{
         }
     }
 
-
-
-    public void minwonAutoProcess(String gonginPassword, Button researchButton) throws Throwable {
+    public void minwonAutoProcess(String gonginPassword) throws Throwable {
 
         displayAndExecute("일반 민원 로그인 시도..",
                 () -> minwonLogin(edgeDriverForMinwon, gonginPassword),
@@ -83,7 +92,7 @@ public class MinwonService{
                 "일반 민원 찾기 오류..");
     }
 
-    public void minwonAnywhereAutoProcess(String gonginPassword, Button researchButton) throws Throwable {
+    public void minwonAnywhereAutoProcess(String gonginPassword) throws Throwable {
         displayAndExecute("어디서나 민원 로그인 시도..",
                 () -> minwonLogin(edgeDriverForAnyWhereMinwon, gonginPassword),
                 "어디서나 민원 로그인 성공..",
@@ -111,7 +120,6 @@ public class MinwonService{
         }
     }
 
-
     private static String minwonSearchCondition(int agoFromToday) {
         final GregorianCalendar calendar = new GregorianCalendar();
         calendar.add(Calendar.DATE, -agoFromToday);
@@ -120,8 +128,8 @@ public class MinwonService{
         final String today = sdf.format(calendar.getTime());
         final String sixdaysAgo = sdf.format(calendar.getTime());
 
-        final String minwonApplyPageUrl = "https://intra.gov.kr/my/AA040ListingOffer.do?returnApp=AA040ListingOfferApp&CP=0&PROC_STATS=0102&" +
-                "FROMDATE=" + sixdaysAgo + //
+        final String minwonApplyPageUrl = "https://intra.gov.kr/my/AA040ListingOffer.do?returnApp=AA040ListingOfferApp&CP=0&PROC_STATS=0102" +
+                "&FROMDATE=" + sixdaysAgo + //
                 "&TODATE=" + today + //
                 "&DP=open&ORGAN_GUBUN=1&HIGH_MENU_ID=1000062&MENU_ID=1000689&MENU_INDEX=1";
 
@@ -136,8 +144,8 @@ public class MinwonService{
         final String today = sdf.format(calendar.getTime());
         final String sixdaysAgo = sdf.format(calendar.getTime());
 
-        final String minwonAnywhereApplyPageUrl = "https://intra.gov.kr/my/AA180FaxListeringOffer.do?organ_cd=3460000&organ_type=2&proc_stat=0102&" +
-                "from_accp_day " + sixdaysAgo +
+        final String minwonAnywhereApplyPageUrl = "https://intra.gov.kr/my/AA180FaxListeringOffer.do?organ_cd=3460000&organ_type=2&proc_stat=0102" +
+                "&from_accp_day " + sixdaysAgo +
                 "&to_accp_day=" + today +
                 "&HIGH_MENU_ID=1000552&MENU_ID=1000076&MENU_INDEX=1&SUB_MENU_INDEX=2";
 
@@ -207,33 +215,23 @@ public class MinwonService{
 
     private void minwonLogin(WebDriver webDriver, String gonginPassword) {
 
-        final String minwonMainUrl = "https://intra.gov.kr/g4g_admin/AA060_new_login.jsp";
-
-        webDriver.get(minwonMainUrl);
-
+        webDriver.get(MINWON_MAIN_URL);
         webDriver.manage().timeouts().implicitlyWait(Duration.ofMillis(5000));
 
-        WebElement authButton = webDriver.findElement(By.xpath("/html/body/div[1]/div[2]/div/div/ul[1]/li[1]/button"));
+        clickElement(webDriver, By.xpath(XPATH_AUTH_BUTTON));
+        clickElement(webDriver, By.xpath(XPATH_SELECT_ADMIN));
 
-        webDriver.manage().timeouts().implicitlyWait(Duration.ofMillis(5000));
-
-        Wait<WebDriver> wait = new WebDriverWait(webDriver, Duration.ofSeconds(10));
-
-        wait.until(edge -> authButton.isDisplayed());
-        authButton.click();
-
-        wait = new WebDriverWait(webDriver, Duration.ofSeconds(10));
-        WebElement selectAdmin = webDriver.findElement(By.xpath("/html/body/div[1]/div/div[2]/div[3]/table/tbody/tr/td[2]/div"));
-
-        wait.until(edge -> selectAdmin.isDisplayed());
-        selectAdmin.click();
-
-        WebElement certificatePassword = webDriver.findElement(By.xpath("/html/body/div[1]/div/div[2]/div[5]/table/tbody/tr/td[2]/form/div[1]/input[1]"));
+        WebElement certificatePassword = webDriver.findElement(By.xpath(XPATH_CERTIFICATE_PASSWORD));
         certificatePassword.sendKeys(gonginPassword);
 
-        WebElement certificateConfirm = webDriver.findElement(By.xpath("/html/body/div[1]/div/div[2]/div[6]/button[1]"));
-        certificateConfirm.click();
+        clickElement(webDriver, By.xpath(XPATH_CERTIFICATE_CONFIRM));
 
+    }
+
+    private void clickElement(WebDriver webDriver, By by){
+        WebElement element = new WebDriverWait(webDriver, Duration.ofSeconds(10))
+                .until(ExpectedConditions.elementToBeClickable(by));
+        element.click();
     }
 
     public void sleepSecond(int second) {
