@@ -28,8 +28,9 @@ public class MinwonController implements ProcessDisplayUpdater{
     private TextArea processDisplay;
 
     ExecutorService executorService = Executors.newFixedThreadPool(10);
-    private MinwonService minwonService = new MinwonService();
+    private MinwonService minwonService;
     public MinwonController() throws AWTException {
+        this.minwonService = new MinwonService(this);
     }
 
 
@@ -45,9 +46,9 @@ public class MinwonController implements ProcessDisplayUpdater{
         researchButton.setDisable(false);
         executorService.submit(() -> {
             try {
-                minwonService.minwonAutoProcess(gonginPassword ,processDisplay,researchButton);
+                minwonService.minwonAutoProcess(gonginPassword,researchButton);
             } catch (Throwable e) {
-                startButton.setDisable(false);
+                Platform.runLater(() -> startButton.setDisable(false));
                 throw new RuntimeException(e);
             }
         });
@@ -55,7 +56,7 @@ public class MinwonController implements ProcessDisplayUpdater{
 
         executorService.submit(() -> {
             try {
-                minwonService.minwonAnywhereAutoProcess(gonginPassword ,processDisplay,researchButton);
+                minwonService.minwonAnywhereAutoProcess(gonginPassword,researchButton);
             } catch (Throwable e) {
                 startButton.setDisable(false);
                 throw new RuntimeException(e);
@@ -72,7 +73,7 @@ public class MinwonController implements ProcessDisplayUpdater{
                 whenMinwonFound = false;
                 fieldContent.append("일반 민원 찾기 시작..").append("\n");
                 processDisplay.setStyle("-fx-background-color: white");
-                minwonService.busyWaitUntilFindFirstMinwon(minwonApplyPageUrl, REFRESH_SECOND, processDisplay, researchButton);
+                minwonService.busyWaitUntilFindFirstMinwon(minwonApplyPageUrl, REFRESH_SECOND);
             } catch (Exception e) {
                 fieldContent.append("일반 민원 찾기 오류..").append("\n");
                 processDisplay.setStyle("-fx-background-color: red");
@@ -86,7 +87,7 @@ public class MinwonController implements ProcessDisplayUpdater{
                 whenMinwonFound = false;
                 fieldContent.append("어디서나 민원 찾기 시작..").append("\n");
                 processDisplay.setStyle("-fx-background-color: white");
-                minwonService.busyWaitUntilFindFirstAnywhereMinwon(minwonAnywhereApplyPageUrl, REFRESH_SECOND, processDisplay, researchButton);
+                minwonService.busyWaitUntilFindFirstAnywhereMinwon(minwonAnywhereApplyPageUrl, REFRESH_SECOND);
             } catch (Exception e) {
                 fieldContent.append("어디서나 민원 찾기 오류..").append("\n");
                 processDisplay.setStyle("-fx-background-color: red");
@@ -130,7 +131,37 @@ public class MinwonController implements ProcessDisplayUpdater{
     }
 
     @Override
-    public void updateProcessDisplay(String message) {
-        Platform.runLater(() -> processDisplay.appendText(message + "\n"));
+    public void updateProcessDisplay(String message){
+        Platform.runLater(() -> {
+            try {
+                fieldContent.append(message).append("\n");
+                processDisplay.setScrollTop(Double.MAX_VALUE);
+                processDisplay.setText(fieldContent.toString());
+                processDisplay.appendText("");
+            } catch(Exception e){
+                e.printStackTrace();
+            }
+        });
+    }
+    @Override
+    public void updateStyle(String code){
+        Platform.runLater(() -> {
+            try {
+                processDisplay.setStyle(code);
+            } catch(Exception e){
+                e.printStackTrace();
+            }
+        });
+    }
+
+    @Override
+    public void setResearchButtonDisabled(boolean status){
+        Platform.runLater(() -> {
+            try{
+                researchButton.setDisable(status);
+            }catch(Exception e){
+                e.printStackTrace();
+            }
+        });
     }
 }

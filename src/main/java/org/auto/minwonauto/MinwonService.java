@@ -1,5 +1,6 @@
 package org.auto.minwonauto;
 
+import javafx.application.Platform;
 import javafx.scene.control.Button;
 import org.openqa.selenium.*;
 import org.openqa.selenium.edge.EdgeDriver;
@@ -22,7 +23,7 @@ import java.util.Optional;
 
 import static utility.ApplyCategory.EXPERIENCE;
 
-public class MinwonService {
+public class MinwonService{
     public final WebDriver edgeDriverForMinwon = new EdgeDriver();
     public final WebDriver edgeDriverForAnyWhereMinwon = new EdgeDriver();
     public static final StringBuilder fieldContent = new StringBuilder();
@@ -30,83 +31,93 @@ public class MinwonService {
     public static final String minwonAnywhereApplyPageUrl = minwonAnywhereSearchCondition(6);
     public static boolean whenMinwonFound = false;
     public static final int REFRESH_SECOND = 5;
+
+    private ProcessDisplayUpdater observer;
     private static final Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
     private boolean defaultAddressFlag;
     private boolean detailAddressFlag;
     private Robot robot;
     private Mouse mouse;
 
-    public MinwonService() throws AWTException {
+    public MinwonService(ProcessDisplayUpdater observer) throws AWTException {
+        this.observer = observer;
         this.robot = new Robot();
         this.mouse = new Mouse();
     }
 
-    public void minwonAutoProcess(String gonginPassword, TextArea processDisplay, Button researchButton) throws Throwable {
+    private void notify(String message){
+        if(observer != null){
+            observer.updateProcessDisplay(message);
+        }
+    }
+
+    private void notifyStyle(String style){
+        if(observer != null){
+            observer.updateStyle(style);
+        }
+    }
+
+    private void setResearchButtonDisabled(boolean status){
+        if(observer != null){
+            observer.setResearchButtonDisabled(status);
+        }
+    }
+
+
+
+    public void minwonAutoProcess(String gonginPassword, Button researchButton) throws Throwable {
 
         displayAndExecute("일반 민원 로그인 시도..",
                 () -> minwonLogin(edgeDriverForMinwon, gonginPassword),
                 "일반 민원 로그인 성공..",
-                "일반 민원 로그인 실패..",
-                processDisplay);
+                "일반 민원 로그인 실패..");
 
         displayAndExecute("일반 민원 신청서 페이지로 이동..",
                 () -> gotoMinwonApplyPage(edgeDriverForMinwon, minwonApplyPageUrl),
                 "일반 민원 신청서 페이지로 이동 완료",
-                "로그인 실패..", processDisplay);
+                "로그인 실패..");
 
         displayAndExecute("일반 민원 찾기 시작..",
-                () -> busyWaitUntilFindFirstMinwon(minwonApplyPageUrl, REFRESH_SECOND, processDisplay, researchButton),
+                () -> busyWaitUntilFindFirstMinwon(minwonApplyPageUrl, REFRESH_SECOND),
                 "일반 민원 찾기 완료..",
-                "일반 민원 찾기 오류..",
-                processDisplay);
+                "일반 민원 찾기 오류..");
     }
 
-    public void minwonAnywhereAutoProcess(String gonginPassword, TextArea processDisplay, Button researchButton) throws Throwable {
+    public void minwonAnywhereAutoProcess(String gonginPassword, Button researchButton) throws Throwable {
         displayAndExecute("어디서나 민원 로그인 시도..",
                 () -> minwonLogin(edgeDriverForAnyWhereMinwon, gonginPassword),
                 "어디서나 민원 로그인 성공..",
-                "어디서나 민원 로그인 실패..",
-                processDisplay);
+                "어디서나 민원 로그인 실패..");
 
         displayAndExecute("어디서나 민원신청서 페이지로 이동..",
                 () -> gotoMinwonApplyPage(edgeDriverForAnyWhereMinwon, minwonAnywhereApplyPageUrl),
                 "어디서나 민원신청서 페이지로 이동 완료",
-                "어디서나 민원 로그인 실패..", processDisplay);
+                "어디서나 민원 로그인 실패..");
 
         displayAndExecute("어디서나 민원찾기 시작..",
-                () -> busyWaitUntilFindFirstAnywhereMinwon(minwonAnywhereApplyPageUrl, REFRESH_SECOND, processDisplay, researchButton),
+                () -> busyWaitUntilFindFirstAnywhereMinwon(minwonAnywhereApplyPageUrl, REFRESH_SECOND),
                 "어디서나 민원 찾기 완료..",
-                "어디서나 민원 찾기 오류",
-                processDisplay);
+                "어디서나 민원 찾기 오류");
     }
 
 
-
-    private void displayProcess(String message, TextArea processDisplay){
-        fieldContent.append(message).append("\n");
-        processDisplay.setScrollTop(Double.MAX_VALUE);
-        processDisplay.setText(fieldContent.toString());
-        processDisplay.appendText("");
-    }
-
-    private void displayAndExecute(String tryMessage, Action action, String successMessage, String failMessage, TextArea processDisplay) throws Throwable {
+    private void displayAndExecute(String tryMessage, Runnable task, String successMessage, String failMessage) throws Throwable {
         try {
-            displayProcess(tryMessage, processDisplay);
-            action.execute();
-            displayProcess(successMessage, processDisplay);
+            notify(tryMessage);
+            task.run();
+            notify(successMessage);
         } catch (Throwable e) {
-            displayProcess(failMessage, processDisplay);
+            notify(failMessage);
         }
     }
 
 
     private static String minwonSearchCondition(int agoFromToday) {
-        GregorianCalendar calendar = new GregorianCalendar();
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd");
-
-        final String today = sdf.format(calendar.getTime());
-
+        final GregorianCalendar calendar = new GregorianCalendar();
         calendar.add(Calendar.DATE, -agoFromToday);
+
+        final SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd");
+        final String today = sdf.format(calendar.getTime());
         final String sixdaysAgo = sdf.format(calendar.getTime());
 
         final String minwonApplyPageUrl = "https://intra.gov.kr/my/AA040ListingOffer.do?returnApp=AA040ListingOfferApp&CP=0&PROC_STATS=0102&" +
@@ -118,12 +129,11 @@ public class MinwonService {
     }
 
     private static String minwonAnywhereSearchCondition(int agoFromToday) {
-        GregorianCalendar calendar = new GregorianCalendar();
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd");
-
-        final String today = sdf.format(calendar.getTime());
-
+        final GregorianCalendar calendar = new GregorianCalendar();
         calendar.add(Calendar.DATE, -agoFromToday);
+
+        final SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd");
+        final String today = sdf.format(calendar.getTime());
         final String sixdaysAgo = sdf.format(calendar.getTime());
 
         final String minwonAnywhereApplyPageUrl = "https://intra.gov.kr/my/AA180FaxListeringOffer.do?organ_cd=3460000&organ_type=2&proc_stat=0102&" +
@@ -149,26 +159,21 @@ public class MinwonService {
         receptionButton.click();
     }
 
-    public void busyWaitUntilFindFirstMinwon(String minwonApplyPageUrl, int refreshSecond, TextArea processDisplay, Button researchButton) {
+    public void busyWaitUntilFindFirstMinwon(String minwonApplyPageUrl, int refreshSecond) {
         WebElement firstMinwonButton = null;
         int cnt = 1;
         while (firstMinwonButton == null && !whenMinwonFound) {
             try {
                 firstMinwonButton = this.edgeDriverForMinwon.findElement(By.xpath("/html/body/div[2]/div[2]/form[2]/div[1]/table/tbody/tr/td[2]/a"));
-                fieldContent.append("일반 민원이 접수되었습니다.").append("\n");
-                processDisplay.setStyle("-fx-background-color: green");
-                researchButton.setDisable(false);
-                processDisplay.setText(fieldContent.toString());
-                processDisplay.appendText("");
+                notify("일반 민원이 접수되었습니다.");
+                notifyStyle("-fx-background-color: green");
+                setResearchButtonDisabled(false);
                 firstMinwonButton.click();
                 whenMinwonFound = true;
-
             } catch (NoSuchElementException e) {
                 try {
                     Thread.sleep(1000 * refreshSecond); //실제로는 1.5배 더 걸림 왜인지 모르겠음.
-                    fieldContent.append("일반 민원 재 탐색 " + cnt++ * refreshSecond + "초 동안 진행중..").append("\n");
-                    processDisplay.setText(fieldContent.toString());
-                    processDisplay.appendText("");
+                    notify("일반 민원 재 탐색 " + cnt++ * refreshSecond + "초 동안 진행중..");
                     this.edgeDriverForMinwon.get(minwonApplyPageUrl);
                 } catch (InterruptedException ex) {
                     throw new RuntimeException();
@@ -177,25 +182,21 @@ public class MinwonService {
         }
     }
 
-    public void busyWaitUntilFindFirstAnywhereMinwon(String minwonApplyPageUrl, int refreshSecond, TextArea processDisplay, Button researchButton) {
+    public void busyWaitUntilFindFirstAnywhereMinwon(String minwonApplyPageUrl, int refreshSecond) {
         WebElement firstMinwonButton = null;
         int cnt = 1;
         while (firstMinwonButton == null && !whenMinwonFound) {
             try {
                 firstMinwonButton = this.edgeDriverForAnyWhereMinwon.findElement(By.xpath("/html/body/div[2]/div[2]/form/div[5]/table/tbody/tr/td[2]/a"));
-                fieldContent.append("어디서나 민원이 접수되었습니다.").append("\n");
-                processDisplay.setStyle("-fx-background-color: blue");
-                researchButton.setDisable(false);
-                processDisplay.setText(fieldContent.toString());
-                processDisplay.appendText("");
+                notify("어디서나 민원이 접수되었습니다.");
+                notifyStyle("-fx-background-color: blue");
+                setResearchButtonDisabled(false);
                 firstMinwonButton.click();
                 whenMinwonFound = true;
             } catch (NoSuchElementException e) {
                 try {
                     Thread.sleep(1000 * refreshSecond); //실제로는 1.5배 더 걸림 왜인지 모르겠음.
-                    fieldContent.append("어디서나 민원 재 탐색 " + cnt++ * refreshSecond + "초 동안 진행중..").append("\n");
-                    processDisplay.setText(fieldContent.toString());
-                    processDisplay.appendText("");
+                    notify("어디서나 민원 재 탐색 " + cnt++ * refreshSecond + "초 동안 진행중..");
                     this.edgeDriverForAnyWhereMinwon.get(minwonApplyPageUrl);
                 } catch (InterruptedException ex) {
                     throw new RuntimeException();
