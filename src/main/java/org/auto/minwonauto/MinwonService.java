@@ -1,14 +1,11 @@
 package org.auto.minwonauto;
 
-import javafx.application.Platform;
-import javafx.scene.control.Button;
 import org.openqa.selenium.*;
 import org.openqa.selenium.edge.EdgeDriver;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.Wait;
 import org.openqa.selenium.support.ui.WebDriverWait;
 import util.Mouse;
-import javafx.scene.control.TextArea;
 
 import java.awt.*;
 import java.awt.datatransfer.Clipboard;
@@ -31,15 +28,13 @@ public class MinwonService{
     private static final String XPATH_SELECT_ADMIN =  "/html/body/div[1]/div/div[2]/div[3]/table/tbody/tr/td[2]/div";
     private static final String XPATH_CERTIFICATE_PASSWORD = "/html/body/div[1]/div/div[2]/div[5]/table/tbody/tr/td[2]/form/div[1]/input[1]";
     private static final String XPATH_CERTIFICATE_CONFIRM = "/html/body/div[1]/div/div[2]/div[6]/button[1]";
-
-    private final WebDriver edgeDriverForMinwon;
-    private final WebDriver edgeDriverForAnyWhereMinwon;
     public static final String minwonApplyPageUrl = minwonSearchCondition(6);
     public static final String minwonAnywhereApplyPageUrl = minwonAnywhereSearchCondition(6);
-    private final Clipboard clipboard;
-    public static boolean whenMinwonFound = false;
     public static final int REFRESH_SECOND = 5;
-
+    public static boolean whenMinwonFound;
+    private final WebDriver edgeDriverForMinwon;
+    private final WebDriver edgeDriverForAnyWhereMinwon;
+    private final Clipboard clipboard;
     private ProcessDisplayUpdater observer;
     private boolean defaultAddressFlag;
     private boolean detailAddressFlag;
@@ -53,7 +48,6 @@ public class MinwonService{
         this.robot = new Robot();
         this.mouse = new Mouse();
         this.observer = observer;
-
     }
 
     private void notify(String message){
@@ -145,7 +139,7 @@ public class MinwonService{
         final String sixdaysAgo = sdf.format(calendar.getTime());
 
         final String minwonAnywhereApplyPageUrl = "https://intra.gov.kr/my/AA180FaxListeringOffer.do?organ_cd=3460000&organ_type=2&proc_stat=0102" +
-                "&from_accp_day " + sixdaysAgo +
+                "&from_accp_day=" + sixdaysAgo +
                 "&to_accp_day=" + today +
                 "&HIGH_MENU_ID=1000552&MENU_ID=1000076&MENU_INDEX=1&SUB_MENU_INDEX=2";
 
@@ -172,6 +166,8 @@ public class MinwonService{
         int cnt = 1;
         while (firstMinwonButton == null && !whenMinwonFound) {
             try {
+                clickElement(edgeDriverForMinwon,By.xpath("/html/body/div[2]/div[1]/div[3]/div[1]/div[1]/a"));
+                clickElement(edgeDriverForMinwon,By.xpath("/html/body/div[2]/div[1]/div[3]/div[1]/div[2]/ul/li[1]/span[1]"));
                 firstMinwonButton = this.edgeDriverForMinwon.findElement(By.xpath("/html/body/div[2]/div[2]/form[2]/div[1]/table/tbody/tr/td[2]/a"));
                 notify("일반 민원이 접수되었습니다.");
                 notifyStyle("-fx-background-color: green");
@@ -195,6 +191,8 @@ public class MinwonService{
         int cnt = 1;
         while (firstMinwonButton == null && !whenMinwonFound) {
             try {
+                clickElement(edgeDriverForAnyWhereMinwon,By.xpath("/html/body/div[2]/div[1]/div[3]/div[2]/div[1]/a"));
+                clickElement(edgeDriverForAnyWhereMinwon,By.xpath("/html/body/div[2]/div[1]/div[3]/div[2]/div[2]/ul/li[1]/span[1]"));
                 firstMinwonButton = this.edgeDriverForAnyWhereMinwon.findElement(By.xpath("/html/body/div[2]/div[2]/form/div[5]/table/tbody/tr/td[2]/a"));
                 notify("어디서나 민원이 접수되었습니다.");
                 notifyStyle("-fx-background-color: blue");

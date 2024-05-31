@@ -44,7 +44,7 @@ public class MinwonController implements ProcessDisplayUpdater{
         fieldContent.setLength(0);
         fieldContent.append("프로그램을 시작합니다.\n");
         processDisplay.setText(fieldContent.toString());
-
+        processDisplay.setStyle("-fx-background-color: white");
         startButton.setDisable(true);
         researchButton.setDisable(false);
         executorService.submit(() -> {
@@ -72,8 +72,8 @@ public class MinwonController implements ProcessDisplayUpdater{
         researchButton.setDisable(true);
 
         executorService.submit(() -> {
+
             try {
-                whenMinwonFound = false;
                 fieldContent.append("일반 민원 찾기 시작..").append("\n");
                 processDisplay.setStyle("-fx-background-color: white");
                 minwonService.busyWaitUntilFindFirstMinwon(minwonApplyPageUrl, REFRESH_SECOND);
@@ -86,8 +86,8 @@ public class MinwonController implements ProcessDisplayUpdater{
         });
 
         executorService.submit(() -> {
+
             try {
-                whenMinwonFound = false;
                 fieldContent.append("어디서나 민원 찾기 시작..").append("\n");
                 processDisplay.setStyle("-fx-background-color: white");
                 minwonService.busyWaitUntilFindFirstAnywhereMinwon(minwonAnywhereApplyPageUrl, REFRESH_SECOND);
@@ -137,6 +137,9 @@ public class MinwonController implements ProcessDisplayUpdater{
     public void updateProcessDisplay(String message){
         Platform.runLater(() -> {
             try {
+                if(fieldContent.length() >= 1_000){
+                    fieldContent.setLength(0); // 캐시초기화
+                }
                 fieldContent.append(message).append("\n");
                 processDisplay.setScrollTop(Double.MAX_VALUE);
                 processDisplay.setText(fieldContent.toString());
