@@ -164,7 +164,8 @@ public class MinwonService{
     public void busyWaitUntilFindFirstMinwon(String minwonApplyPageUrl, int refreshSecond) {
         WebElement firstMinwonButton = null;
         int cnt = 1;
-        while (firstMinwonButton == null && !whenMinwonFound) {
+        while (firstMinwonButton == null) {
+            if(whenMinwonFound){break;}
             try {
                 clickElement(edgeDriverForMinwon,By.xpath("/html/body/div[2]/div[1]/div[3]/div[1]/div[1]/a"));
                 clickElement(edgeDriverForMinwon,By.xpath("/html/body/div[2]/div[1]/div[3]/div[1]/div[2]/ul/li[1]/span[1]"));
@@ -189,7 +190,8 @@ public class MinwonService{
     public void busyWaitUntilFindFirstAnywhereMinwon(String minwonApplyPageUrl, int refreshSecond) {
         WebElement firstMinwonButton = null;
         int cnt = 1;
-        while (firstMinwonButton == null && !whenMinwonFound) {
+        while (firstMinwonButton == null) {
+            if(whenMinwonFound){break;}
             try {
                 clickElement(edgeDriverForAnyWhereMinwon,By.xpath("/html/body/div[2]/div[1]/div[3]/div[2]/div[1]/a"));
                 clickElement(edgeDriverForAnyWhereMinwon,By.xpath("/html/body/div[2]/div[1]/div[3]/div[2]/div[2]/ul/li[1]/span[1]"));

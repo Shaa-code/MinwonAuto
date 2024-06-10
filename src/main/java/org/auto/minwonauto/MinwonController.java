@@ -47,6 +47,7 @@ public class MinwonController implements ProcessDisplayUpdater{
         processDisplay.setStyle("-fx-background-color: white");
         startButton.setDisable(true);
         researchButton.setDisable(false);
+
         executorService.submit(() -> {
             try {
                 minwonService.minwonAutoProcess(gonginPassword);
@@ -55,7 +56,6 @@ public class MinwonController implements ProcessDisplayUpdater{
                 throw new RuntimeException(e);
             }
         });
-
 
         executorService.submit(() -> {
             try {
@@ -74,6 +74,7 @@ public class MinwonController implements ProcessDisplayUpdater{
         executorService.submit(() -> {
 
             try {
+                whenMinwonFound = false;
                 fieldContent.append("일반 민원 찾기 시작..").append("\n");
                 processDisplay.setStyle("-fx-background-color: white");
                 minwonService.busyWaitUntilFindFirstMinwon(minwonApplyPageUrl, REFRESH_SECOND);
@@ -88,6 +89,7 @@ public class MinwonController implements ProcessDisplayUpdater{
         executorService.submit(() -> {
 
             try {
+                whenMinwonFound = false;
                 fieldContent.append("어디서나 민원 찾기 시작..").append("\n");
                 processDisplay.setStyle("-fx-background-color: white");
                 minwonService.busyWaitUntilFindFirstAnywhereMinwon(minwonAnywhereApplyPageUrl, REFRESH_SECOND);
@@ -124,7 +126,7 @@ public class MinwonController implements ProcessDisplayUpdater{
         researchButton.setOnAction(event -> {handleResearchButtonAction();});
 
         //chromeButton
-        chromeButton.setText("민원처리실행");
+        chromeButton.setText("민원처리 실행");
         chromeButton.setStyle("-fx-background-color: #457ecd; -fx-text-fill:#ffffff;");
         chromeButton.setDisable(true);
         chromeButton.setOnAction(event -> {handleChromeButtonAction();});
